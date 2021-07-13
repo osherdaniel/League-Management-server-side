@@ -1,0 +1,84 @@
+-----------------------------Users-----------------------------
+CREATE TABLE Users(
+					userID INT IDENTITY PRIMARY KEY NOT NULL,
+					userName NVARCHAR(20) UNIQUE NOT NULL,
+					firsName NVARCHAR(10) NOT NULL,
+					lastName NVARCHAR(16) NOT NULL,
+					country NVARCHAR(20) NOT NULL,
+					password NVARCHAR(max) NOT NULL,
+					email NVARCHAR(30) NOT NULL,
+					image-url NVARCHAR(max) NOT NULL
+)
+	
+-----------------------------FavoritesPlayers-----------------------------
+CREATE TABLE FavoritesPlayers(
+                    userID INT NOT NULL,
+                    playerID INT NOT NULL,
+	                PRIMARY KEY("userID","playerID"),
+                    FOREIGN KEY (userID) REFERENCES Users(userID)
+)
+
+-----------------------------FavoritesGames-----------------------------
+CREATE TABLE FavoritesGames(
+                    userID INT NOT NULL,
+                    gameID INT NOT NULL,
+	                PRIMARY KEY("userID","gameID"),
+                    FOREIGN KEY (userID) REFERENCES Users(userID)
+)
+
+-----------------------------FavoritesTeam-----------------------------
+CREATE TABLE FavoritesTeam(
+                    userID INT NOT NULL,
+                    teamID INT NOT NULL,
+	                PRIMARY KEY("userID","teamID"),
+                    FOREIGN KEY (userID) REFERENCES Users(userID)
+)
+
+---------------------------- Referees ----------------------------
+CREATE TABLE Referees(
+					refereeID INT IDENTITY PRIMARY KEY NOT NULL,
+					userID INT NOT NULL,
+					training NVARCHAR(max),
+          FOREIGN KEY (userID) REFERENCES Users(userID)
+)
+
+----------------------------- Games -----------------------------------
+CREATE TABLE Games(
+					gameID INT IDENTITY PRIMARY KEY NOT NULL,
+          homeTeamID INT NOT NULL,
+          awayTeamID INT NOT NULL,
+          game_time DATETIME NOT NULL,
+          refereeID INT NOT NULL,
+          home_result INT,
+          away_result INT,
+          field NVARCHAR(30),
+          FOREIGN KEY (refereeID) REFERENCES Referees(refereeID)
+)
+
+----------------------------- Events -----------------------------------
+CREATE TABLE event_type
+(
+   ID VARCHAR(20) PRIMARY KEY NOT NULL, 
+   type VARCHAR(20) NOT NULL UNIQUE 
+);
+
+INSERT INTO event_type (ID, type)
+values
+  ('Goal', 'Goal'),
+  ('Offsife', 'Offsife'),
+  ('Offense', 'Offense'),
+  ('RedCard', 'RedCard'),
+  ('YellowCard', 'YellowCard'),
+  ('Injury', 'Injury'),
+  ('Subsitution', 'Subsitution');
+
+CREATE TABLE Events(
+					eventID INT IDENTITY PRIMARY KEY NOT NULL,
+                    gameID INT NOT NULL,
+                    event_time DATETIME NOT NULL,
+                    minute INT NOT NULL,
+                    event_description NVARCHAR(max) NOT NULL,
+                    type VARCHAR(20) NOT NULL, 
+                    constraint con foreign key (type) references event_type (ID),
+                    FOREIGN KEY (gameID) REFERENCES Games(gameID)
+)

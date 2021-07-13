@@ -1,0 +1,1181 @@
+openapi: 3.0.3
+info:
+  version: '1.0.0'
+  title: 'Exercise 3.1'
+  description: 'API - Web Development Environments'
+
+tags:
+  - name: Users
+  - name: Auth
+  - name: League
+  - name: Players
+  - name: Coaches
+  - name: Teams
+  - name: Search Pages
+  - name: Association Representative
+paths:
+  /Register:
+    post:
+      tags:
+        - Auth
+      summary: Add new user
+      description: A new user from the client is added to the server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User created on site
+        "400":
+          description: Not all reqired argument was given!
+        "409":
+          description: Username is already taken
+        "401":
+          description: User already logged in
+
+  /Login:
+    post:
+      tags:
+        - Auth
+      summary: Login to the website
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginScheme"
+      responses:
+        "200":
+          description: >
+            User was found in the DB and authenitcated successfully.
+            The session ID is returned in a cookie named 'session'. 
+            You should include this cookie in subsequent requests
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: session=87s97sdhgf279293f8w0e9
+        "400":
+          description: Not all reqired argument was given!
+        "401":
+          description: UserName or Password is incorrect || User already login
+
+  /Logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout a user from the system and delete his cookie
+      responses:
+        "200":
+          description: "The user has ben successfully logged out || The user already logged out"
+
+  /users/favoritePlayers:
+    get:
+      tags:
+        - Users
+      summary: Return the favorite players that were saved by user
+      responses:
+        "200":
+          description: data about the user's favorites players returned 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlayerPreview"       
+        "401":
+          description: User is not authorized
+    post:
+      summary: save player in the favorites list of a user
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playerID:
+                  type: string
+                  description: player's ID which the user saved
+                  example: 82808
+      responses:
+        "201":
+          description: The player successfully saved as favorite
+        "303":
+          description: The player already in favorites team  
+        "400":
+          description: One of the argument is not specified  
+        "404":
+          description: The player is not exists in superliga
+          
+  /users/favoriteTeams:
+    get:
+      tags:
+        - Users
+      summary: Return the favorite teams that were saved by user
+      responses:
+        "200":
+          description: data about the user's favorites teams returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PreviewTeam"
+        "401":
+          description: User is not authorized
+
+    post:
+      summary: save team in the favorites list of a user
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamID:
+                  type: string
+                  description: team's ID which the user saved
+                  example: 85
+      responses:
+        "201":
+          description: The team successfully saved as favorite
+        "303":
+          description: The team already in favorites teams  
+        "400":
+          description: One of the argument is not specified  
+        "404":
+          description: The team is not exists
+
+  /users/favoriteGames:
+    get:
+      tags:
+        - Users
+      summary: Return the favorite games that were saved by user
+      responses:
+        "200":
+          description: data about the user's favorites games returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GamePreview"
+        "401":
+          description: user is not authorized
+
+    post:
+      summary: save game in the favorites list of a user
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameID:
+                  type: string
+                  description: game's ID which the user saved
+                  example: 1
+      responses:
+        "201":
+          description: The game successfully saved as favorite
+        "303":
+          description: The game already in favorites teams  
+        "400":
+          description: One of the argument is not specified  
+        "401":
+          description: The game already accured || The game is not exists 
+
+  /teams/teamFullDetails/{teamId}:
+    get:
+      summary: get full deatils about a team
+      description: useful for team page
+      tags:
+        - Teams
+      parameters:
+        - in: path
+          name: teamId
+          description: team's id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: data about the team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "403":
+          description: The team is not part of the Superliga
+        "404":
+          description: teamID is not exists
+
+  /teams/getTeams:
+    get:
+      tags:
+        - Teams
+      summary: Return all the teams in the system
+      responses:
+        "200":
+          description: data about all the teams in the system
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ObjectPreview"
+        "204":
+          description: There is no teams in the system
+          
+  /players/playerFullDetails/{playerID}:
+    get:
+      summary: get full deatils about a player
+      description: useful for player page
+      tags:
+        - Players
+      parameters:
+        - in: path
+          name: playerID
+          description: Player's ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Data about the player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Player"
+        "403":
+          description: The player is not part of the Superliga
+        "404":
+          description: PlayerID is not exists! 
+          
+  /coaches/coachFullDetails/{coachID}:
+    get:
+      summary: get full deatils about a coach
+      description: useful for coach page
+      tags:
+        - Coaches
+      parameters:
+        - in: path
+          name: coachID
+          description: Coach's ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Data about the coach
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coach"
+        
+        "404":
+          description: CoachID is not exists!        
+        
+  /search/{name}:
+    get:
+      tags:
+      -  Search Pages
+      summary: Search player, team and coach by player name 
+      parameters: 
+      - name: name 
+        in: path
+        required: true
+        description: The name of the player / team / coach
+        schema:
+          type: string
+          example: Rune 
+
+      - name: teamName 
+        in: query
+        required: false
+        description: Filter by team name
+        schema:
+          type: string  
+
+      - name: position 
+        in: query
+        required: false
+        description: Filter by position
+        schema:
+          type: number  
+            
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Search'
+        '204':
+          description: No items to show!
+
+  /league/LeagueInfo:
+    get:
+      tags:
+        - League
+      summary: Home Page of the league
+      responses:
+        "200":
+          description: data about the current league returned
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/League"   
+  
+  /league/futureGamesHomePage:
+    get:
+      tags:
+        - League
+      summary: Home Page of the league
+      responses:
+        "200":
+          description: data about the current league returned
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/HomePage" 
+
+  /manage_league/getAllGames:
+    get:
+      tags:
+        - Association Representative
+      summary: Return all the games in the system
+      responses:
+        "200":
+          description: data about all the games in the system
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GamePreview"
+        "401":
+          description: User is not authorized
+  
+  /manage_league/getReferees:
+    get:
+      tags:
+        - Association Representative
+      summary: Return all the referees in the system
+      responses:
+        "200":
+          description: data about all the referees in the system
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ObjectPreview"
+        "204":
+          description: There is no referees in the system
+  
+  /manage_league/addGame:
+    post:
+      tags:
+        - Association Representative
+      summary: Add new game
+      description: A new game is added to the server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewGame"
+      responses:
+        "201":
+          description: Game created on site
+        "401":
+          description: User is not authorized  
+        "400":
+          description: Not all reqired argument was given!
+        "404":
+          description: RefereeID is not exist || The game already accured  
+     
+  /manage_league/addResultToGame:
+    put:
+      tags:
+      - Association Representative
+      summary: Update result to a game
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateGameResult'
+      responses:
+        '200':
+          description: The result of the game where update!
+        '401':
+          description: User is not authorized 
+        '400':
+          description: Not all reqired argument was given || Result of the game cant be lower than zero
+        '404':
+          description: The game has not yet been played || GameID is not exist         
+        
+  /manage_league/addListEventsToGame:
+    post:
+      tags:
+      - Association Representative
+      summary: Add list event to a game
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateListEvent'
+      responses:
+        '201':
+          description: The list of events has been successfully updated to the game
+        '400':
+          description: Not all reqired argument was given || The parameters entered for the duration of the event description game are not good
+        '401':
+          description: User is not authorized 
+        '404':
+          description: The game has not yet been played || GameID is not exist
+                 
+  /manage_league/addReferee:
+    post:
+      tags:
+      - Association Representative
+      summary: Add new referee to our system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Referee'
+      responses:
+        '200':
+          description: New referee added!
+        '409':
+          description: Username is already taken
+        '400':
+          description: Not all reqired argument was given!
+        '401':
+          description: User is not authorized   
+
+  /manage_league/removeReferee/{refereeID}:
+    delete:
+      tags:
+      -  Association Representative
+      summary: Remove referee
+      parameters: 
+      - name: refereeID 
+        in: path
+        required: true
+        schema:
+          type: number 
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: User is not authorized  
+        '404':
+          description: The refereeID not found
+
+  /league/LeaguePage/:
+    get:
+      tags:
+        - League
+      summary: Return all the games in the system (future games table and past games table)
+      responses:
+        "200":
+          description: data about all the games in the system (past and future)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaguePage"
+        "401":
+          description: User is not authorized 
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:      
+        userName: 
+          type: string
+          minLength: 3
+          maxLength: 8
+          pattern: ^[a-zA-Z]+$
+          description: The UserName must conatins 3 to 8 letters!
+          example: Shahar
+
+        firstName:
+          type: string
+          description: First name of the user
+          example: Shahar
+          
+        lastName:
+          type: string
+          example: Tal
+          description: Last name of ther user
+
+        country:
+          type: string
+          description: Uses's country
+          example: Israel
+          
+        password:
+          type: string
+          minLength: 5
+          maxLength: 10
+          format: password
+          pattern: ^[a-zA-Z0-9]*$
+          example: Shahar123
+          
+        email:
+          type: string 
+          format: email
+          example: ShaharAP@post.bgu.ac.il
+          description: The email of the user
+          
+        image:
+          type: string
+          format: URL
+          description: The user profile image
+
+    LoginScheme:
+      type: object
+      properties:
+        userName:
+          type: string
+          minLength: 3
+          maxLength: 8
+          description: The UserName must conatins 3 to 8 letters!
+          example: ShaharAP
+
+        password:
+          type: string
+          minLength: 5
+          maxLength: 10
+          format: password
+          description:  The Password must contains at least 5 to 8 characters, one letter and one digit
+          example: Shahar123
+    
+    PlayerSearch:
+      type: object
+      properties:
+        playerID:
+          type: number
+          description: The player ID
+          example: 4
+        
+        name:
+          type: string
+          description: The player name
+
+        position:
+          type: number
+          description: The player position
+
+        team:
+          type: string
+          description: The team name  
+
+        image:
+          type: string
+          description: player's image
+          format: URL
+          example: https://cdn.sportmonks.com/images/soccer/players/11/84587.png
+
+    PlayerPreview:
+      type: object
+      properties:
+        playerID:
+          type: number
+          description: The player ID
+          example: 4
+        
+        name:
+          type: string
+          description: The player name
+          
+        image:
+          type: string
+          description: player's image
+          format: URL
+          example: https://cdn.sportmonks.com/images/soccer/players/11/84587.png
+
+    CoachPreview:
+      type: object
+      properties:
+        coachID:
+          type: number
+          description: The coach first name
+
+        firsName:
+          type: string
+          description: The coach first name
+        
+        lastName:
+          type: string
+          description: The coach last name
+          
+        team_name:
+          type: string
+          description: The name of the team where the coach coaches
+          example: Barcelona
+        
+        image:
+          type: string
+          format: URL
+          description: The coach image
+    
+    TeamPreview:
+      type: object
+      properties:
+        teamID:
+          type: number
+          description: The team ID
+          example: 1
+
+        name:
+          type: string
+          description: team name
+          example: København
+
+        coach:
+          type: string
+          description: coach name
+
+        players:
+          type: array
+          description: players names array
+          items:
+            type: string
+    
+    TeamPreviewSearch:
+      type: object
+      properties:
+        teamID:
+          type: number
+          description: The team number
+          example: 85
+        
+        name:
+          type: string
+          description: team name
+          example: København
+
+        logo_path:
+          type: string
+          description: logo_path
+
+    GamePreview:
+      type: object
+      properties:
+        gameID:
+          type: number
+          description: The gameID
+          example: 5
+
+        game_date:
+          type: string
+          description: Game date
+          example: '2021-06-01'
+
+        game_time:
+          type: string
+          description: Game time
+          example: '16:30'
+
+        home_team_ID:
+          type: number
+          description: The home team ID
+          example: 5
+          
+        away_team_ID:
+          type: number
+          description: The away team ID
+          example: 15
+
+        referee_ID:
+          type: number
+          description: The referee ID
+          example: 3
+
+        field:
+          type: string 
+          description: The field of the game        
+
+    NewGame:
+      type: object
+      properties:
+        game_date:
+          type: string
+          description: game date
+          example: "2021-06-01"
+
+        game_time:
+          type: string
+          description: game date
+          example: "16:30"   
+
+        refereeID:
+          type: number
+          description: Thre RefereeID
+          example: 3
+
+        home_team_ID:
+          type: number
+          description: Home Team ID
+          example: 85
+          
+        away_team_ID:
+          type: number
+          description: Home Team ID
+          example: 939
+
+        field:
+          type: string 
+          description: The field of the game
+          example: Bloomfiled        
+          
+    Player:
+      type: object
+      required:
+        - name
+        - image
+        - position
+        - team_name
+        - common_name
+        - nationality
+        - birthday
+        - birthcountry
+        - height
+      properties:
+        playerID:
+          type: number
+          description: The player ID
+          example: 1
+        
+        notInFavorite:
+          type: boolean
+          description: Check if the player in the logged in user favorites
+          example: true 
+           
+        name:
+          type: string
+          description: player's name
+          example: Sten Michael Grytebust
+
+        image:
+          type: string
+          description: player's image
+          format: URL
+          example: https://cdn.sportmonks.com/images/soccer/players/11/84587.png
+
+        position:
+          type: integer
+          description: player's position in team
+          example: 1
+
+        team_name:
+          type: string
+          description: player's team name
+          example: København
+
+        common_name:
+          type: string
+          description: player's common name
+          example: Sten  
+
+        nationality:
+          type: string
+          description: player's nation
+          example: Israel
+
+        birthday:
+          type: string
+          description: player's birthday
+          example: Israel
+
+        birthcountry:
+          type: string
+          description: player's country of birth
+          example: Israel
+
+        height:
+          type: string
+          description: player's height
+          example: 180 CM
+
+        weight:
+          type: string
+          description: player's weight
+          example: 76 Kilo
+
+    Coach:
+      type: object
+      properties:
+        coachID:
+          type: number
+          description: The ID of the coac
+
+        name:
+          type: string
+          description: The coach first name
+        
+        team_ID:
+          type: number
+          description: The ID of the team where the coach coaches
+          example: 85
+        
+        image:
+          type: string
+          format: URL
+          description: The coach image
+
+        common_name:
+          type: string
+          description: player's common name
+          example: Sten  
+
+        nationality:
+          type: string
+          description: player's nation
+          example: Israel
+
+        birthdate:
+          type: string
+          description: player's birthday
+          example: Israel
+
+        birthcountry:
+          type: string
+          description: player's country of birth
+          example: Israel  
+
+    eventType: 
+      type: string 
+      enum:
+      - Goal
+      - Offsife
+      - Offense
+      - Red Card
+      - Yellow card
+      - Injury
+      - Subsitution
+    
+    AddEvent:
+      type: object
+      properties:
+        event_time:
+          type: string
+          description: The time of the event
+          example: '16:30'
+        
+        minute:
+          type: number
+          description: The minute where the event accured
+          example: 20
+          
+        event_description:
+          type: string 
+          description: Description of the event
+          example: first goal of the game
+          
+        type:
+          $ref: '#/components/schemas/eventType'
+          example: 'Goal | Offsife | Offense | RedCard | YellowCard | Injury | Subsitution'  
+
+    Event:
+      type: object
+      properties: 
+        eventID:
+          type: number
+          description: The event ID
+          example: 1
+
+        event_date:
+          type: string
+          description: The time of the event
+          example: '01-01-2021'
+
+        event_time:
+          type: string
+          description: The time of the event
+          example: '16:30'
+        
+        minute:
+          type: number
+          description: The minute where the event accured
+          example: 20
+          
+        event_description:
+          type: string 
+          description: Description of the event
+          example: first goal of the game
+          
+        type:
+          $ref: '#/components/schemas/eventType'
+          example: 'Goal | Offsife | Offense | RedCard | YellowCard | Injury | Subsitution'
+
+    Game:
+      type: object
+      required:
+        - game_date
+        - game_time
+        - home_team
+        - away_team
+        - field
+      properties:    
+        gameID:
+          type: number
+          description: The game ID
+
+        game_time:
+          type: string
+          description: game time
+
+        game_date:
+          type: string
+          description: game date  
+
+        home_result:
+          type: number
+          description: The result of the game for the home team
+        
+        away_result:
+          type: number
+          description: The result of the game for the away team  
+
+        home_team_ID:
+          type: number
+          description: Home team ID
+          
+        away_team_ID:
+          type: number
+          description: Away team ID
+          
+        refereeID:
+          type: number
+          description: The game referee ID
+
+        field:
+          type: string 
+          description: The field of the game
+          
+        event_list:
+          type: array
+          minLength: 3 
+          items:
+            $ref: '#/components/schemas/Event' 
+
+    PreviewTeam:
+      type: object
+      properties:
+        teamID:
+          type: number
+          description: The teamID
+          example: 85
+
+        name:
+          type: string
+          description: team name
+          example: København
+
+        players:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/PlayerPreview"  
+        
+        coach:
+          type: string
+          description: The team coach name
+          example: "Alex Cohen"
+
+    Team:
+      type: object
+      properties:
+        notInFavorite:
+          type: boolean
+          description: Check if the team in the logged in user favorites
+          example: true
+
+        name:
+          type: string
+          description: team name
+          example: København
+
+        players:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/PlayerPreview"
+
+        future_games:
+          type: array
+          items:
+            $ref: '#/components/schemas/Game'
+        
+        past_games:
+          type: array
+          items:
+            $ref: '#/components/schemas/Game'    
+        
+        coachID:
+          type: number
+          description: The team coach ID
+          example: 37571890
+
+        coach:
+          type: string
+          description: The team coach name
+          example: Alex Cohen 
+
+        coach_image:
+          type: string
+          description: The team coach image
+  
+    League_LoginUser:
+      type: object
+      properties:
+        favorite_games:
+          minItems: 0
+          maxItems: 3
+          type: array
+          items:
+            $ref: '#/components/schemas/GamePreview'
+          
+    updateGameResult:  
+      type: object
+      properties:
+        gameID:
+          type: number
+          description: The game ID
+          example: 1
+        
+        home_result:
+          type: number
+          description: The home team score
+          example: 1  
+      
+        away_result:
+          type: number
+          description: The away team score
+          example: 2
+    
+    updateListEvent:   
+      type: object
+      properties:
+        gameID:
+          type: number
+          description: The game ID
+          example: 1
+          
+        listEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddEvent'
+          description: 'Event type should be one of: Goal | Offsife | Offense | RedCard | YellowCard | Injury | Subsitution'             
+            
+    League:
+      type: object
+      properties:
+        league_name:
+          type: string
+          description: league name
+          example: Superliga
+
+        current_season_name:
+          type: string
+          description: current season name
+          example: "2020/2021"
+
+        current_stage_name:
+          type: string
+          description: current stage name
+          example: Championship Round
+        
+        next_game:
+          type: object
+          properties:
+            items:
+             $ref: '#/components/schemas/GamePreview'  
+    
+    Search:
+      type: object
+      properties:
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerSearch'
+          
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamPreviewSearch'
+
+        coaches:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoachPreview'  
+            
+    HomePage:
+      type: object
+      properties:
+        right_column:
+          type: object
+          items:
+            $ref: '#/components/schemas/League_LoginUser'
+         
+    Referee:
+      type: object
+      properties:
+        user:
+          description: Referee details
+          items:
+            $ref: '#/components/schemas/User'
+
+        training:
+          type: string
+          description: The training of the referee
+          example: Superliga trainer
+    
+    ObjectPreview:
+      type: object
+      properties:
+        ID:
+          type: number
+          description: Object ID
+          example: 1
+
+        name:
+          type: string
+          description: Object Name
+          example: "Referee Name"
+
+    LeaguePage:
+      type: object
+      properties:
+        past_games:
+          type: array
+          description: Show all the past games of the leage
+          items:
+            $ref: '#/components/schemas/Game'
+          
+        future_games:
+          type: array
+          description: Show all the future games of the leage
+          items:
+            $ref: '#/components/schemas/Game'      
